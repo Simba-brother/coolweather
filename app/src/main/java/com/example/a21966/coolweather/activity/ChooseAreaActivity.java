@@ -2,7 +2,11 @@ package com.example.a21966.coolweather.activity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -50,6 +54,14 @@ public class ChooseAreaActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+//        if (prefs.getBoolean("city_selected",false)){
+//            Intent intent = new Intent(this,WeatherActivity.class);
+//            startActivity(intent);;
+//            finish();
+//            return;
+//        }
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.choose_area);
         listView = (ListView)findViewById(R.id.list_view);
@@ -57,19 +69,19 @@ public class ChooseAreaActivity extends Activity {
         adapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,dataList);
         listView.setAdapter(adapter);
         coolWeatherDB = CoolWeatherDB.getInstance(this);
+        queryProvinces();
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if (currentLevel == LEVEL_PROVINCE){
                     selectedProvince = provinceList.get(i);
-                   // queryCities();
+                    queryCities();
                 }else if (currentLevel == LEVEL_CITY){
                     selectedCity = cityList.get(i);
-                   // queryCounties();
+                    queryCounties();
                 }
             }
         });
-        queryProvinces();
     }
     private void queryProvinces(){
         provinceList = coolWeatherDB.loadProvinces();
@@ -83,9 +95,51 @@ public class ChooseAreaActivity extends Activity {
             titleText.setText("中国");
             currentLevel = LEVEL_PROVINCE;
         }else {
-            Utility utility = new Utility(coolWeatherDB);//将省存到Province表中
+            Utility.handleProvincesResponse(coolWeatherDB);
             queryProvinces();
         }
     }
+    private void queryCities(){
+        cityList = coolWeatherDB.loadCities(selectedProvince.getId());
+        if (cityList.size() > 0){
+            dataList.clear();
+            for (City city : cityList){
+                dataList.add(city.getCityName());
+            }
+            adapter.notifyDataSetChanged();
+            listView.setSelection(0);
+            titleText.setText(selectedProvince.getProvinceName());
+            currentLevel =  LEVEL_CITY;
+        }else {
+            Utility.handleCitiesResponse(coolWeatherDB,selectedProvince.getId());
+            queryCities();
+        }
+    }
+    private void queryCounties(){
+        countyList = coolWeatherDB.loadCountries(selectedCity.getId());
+        if (countyList.size() > 0){
+            dataList.clear();
+            for (County county : countyList){
+                dataList.add(county.getCountyName());
+            }
+            adapter.notifyDataSetChanged();
+            listView.setSelection(0);
+            titleText.setText(selectedCity.getCityName());
+        }else {
+            Utility.handleCountriesResponses(coolWeatherDB,selectedCity.getId());
+            queryCounties();
+        }
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (currentLevel ==LEVEL_COUNTRY){
+            queryCities();
+        }else if (currentLevel == LEVEL_CITY){
+            queryProvinces();
+        }else {
+            finish();
+        }
+    }
 }

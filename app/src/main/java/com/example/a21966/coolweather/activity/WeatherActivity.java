@@ -1,6 +1,7 @@
 package com.example.a21966.coolweather.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -14,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.a21966.coolweather.R;
+import com.example.a21966.coolweather.service.AutoUpdateService;
 import com.example.a21966.coolweather.util.HttpCallbackListener;
 import com.example.a21966.coolweather.util.HttpUtil;
 import com.example.a21966.coolweather.util.Utility;
@@ -46,8 +48,10 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
         temp2Text = (TextView)findViewById(R.id.temp2);
         currentDateText = (TextView)findViewById(R.id.current_date);
         String countyCode = getIntent().getStringExtra("county_code");
-       // switchCity = (Button)findViewById(R.id.sw)
-       // refeshWeather = (Button)findViewById(R.id)
+        switchCity = (Button)findViewById(R.id.switch_city);
+        switchCity.setOnClickListener(this);
+        refeshWeather = (Button)findViewById(R.id.refresh_weather);
+        refeshWeather.setOnClickListener(this);
 //        String countryCode = getIntent().getStringExtra("countryCode");
 //        if (!TextUtils.isEmpty(countryCode)){
 //            publishText.setText("同步中...");
@@ -63,6 +67,21 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         switch (view.getId()){
+            case R.id.switch_city:
+                Intent intent = new Intent(this,ChooseAreaActivity.class);
+                intent.putExtra("from_weather_activity",true);
+                startActivity(intent);
+                finish();
+                break;
+            case R.id.refresh_weather:
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                String weatherCode = prefs.getString("weather_code","");
+                if (!TextUtils.isEmpty(weatherCode)){
+                    queryWeatherInfo(weatherCode);
+                }
+                break;
+            default:
+                break;
         }
     }
     private void queryWeatherInfo(String weatherCode){
@@ -108,5 +127,7 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
         currentDateText.setText(prefs.getString("current_date", ""));
         weatherInfoLayout.setVisibility(View.VISIBLE);
         cityNameText.setVisibility(View.VISIBLE);
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 }

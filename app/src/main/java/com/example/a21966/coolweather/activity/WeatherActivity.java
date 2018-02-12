@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -44,6 +45,7 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
         temp1Text = (TextView)findViewById(R.id.temp1);
         temp2Text = (TextView)findViewById(R.id.temp2);
         currentDateText = (TextView)findViewById(R.id.current_date);
+        String countyCode = getIntent().getStringExtra("county_code");
        // switchCity = (Button)findViewById(R.id.sw)
        // refeshWeather = (Button)findViewById(R.id)
 //        String countryCode = getIntent().getStringExtra("countryCode");
@@ -55,7 +57,7 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
 //        }else {
 //            showWeather();
 //        }
-        queryWeatherInfo("101010100");
+        queryWeatherInfo("101190404");
     }
 
     @Override
@@ -64,15 +66,18 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
         }
     }
     private void queryWeatherInfo(String weatherCode){
-        String address = "http://www.weather.com.cn/data/sk/" + weatherCode +".html";
+        String address = "http://www.weather.com.cn/data/cityinfo/" + weatherCode +".html";
         queryFromServer(address,"weatherCode");
     }
     private void queryFromServer(final String address, final String type ){
+
         HttpUtil.sentHttpRequest(address, new HttpCallbackListener() {
             @Override
             public void onFinish(String response) {
+
                 if ("weatherCode".equals(type)){
-                    Utility.HandleWeatherResponse(WeatherActivity.this,response);
+
+                    Utility.handleWeatherResponse(WeatherActivity.this,response);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

@@ -3,6 +3,7 @@ package com.example.a21966.coolweather.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.example.a21966.coolweather.model.City;
 import com.example.a21966.coolweather.model.CoolWeatherDB;
@@ -40,12 +41,12 @@ public class Utility {
     public static boolean handleCountriesResponses(CoolWeatherDB coolWeatherDB,int cityId){
         County county =new County();
         county.setCountyName("昆山");
-        county.setCountyCode("190404");
+        county.setCountyCode("101190404");
         county.setCityId(cityId);
         coolWeatherDB.saveCountry(county);
         return true;
     }
-    public static void HandleWeatherResponse(Context context,String response){
+    public static void handleWeatherResponse(Context context,String response){
         try {
             JSONObject jsonObject = new JSONObject(response);
             JSONObject weatherInfo = jsonObject.getJSONObject("weatherinfo");
@@ -56,6 +57,7 @@ public class Utility {
             String weatherDesp = weatherInfo.getString("weather");
             String publishTime = weatherInfo.getString("ptime");
             saveWeatherInfo(context,cityName,weatherCode,temp1,temp2,weatherDesp,publishTime);
+            Log.d("WeatherActivity", "handleWeatherResponse: ");
         }catch (JSONException e){
             e.printStackTrace();
         }
